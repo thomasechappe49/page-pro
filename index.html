@@ -1,0 +1,982 @@
+<html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <title>Page de démarrage — Zones interactives + Import/Export</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{--bg:#f6f7fb;--card:#ffffff;--text:#111827;--muted:#6b7280;--accent:#3b82f6;--radius:14px;--shadow:0 6px 18px rgba(0,0,0,.08);}
+    @media (prefers-color-scheme: dark){:root{--bg:#0b0e14;--card:#121723;--text:#e5e7eb;--muted:#9ca3af;--accent:#60a5fa;--shadow:0 10px 28px rgba(0,0,0,.45);}}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial;min-height:100dvh;display:flex;flex-direction:column;gap:14px;padding:14px}
+    header.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;max-width:1700px;margin:0 auto;width:100%}
+    .title{font-weight:800;letter-spacing:.2px}
+    .hint{color:var(--muted);font-size:12px}
+
+    .toolbar{display:grid;grid-template-columns:1fr auto auto auto auto;gap:8px;width:100%;max-width:1700px;margin:0 auto;background:var(--card);padding:10px;border-radius:12px;box-shadow:var(--shadow)}
+    .toolbar input,.toolbar select,.toolbar button{border:1px solid rgba(0,0,0,.1);background:transparent;color:var(--text);padding:10px;border-radius:10px;outline:none}
+    .toolbar button.primary{background:var(--accent);color:#fff;border:0}
+    .toolbar .actions{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+    .toolbar input[type="file"]{ display:none }
+
+    main.dashboard{
+      width:100%; max-width:1700px; margin:0 auto;
+      display:grid; gap:10px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      height: calc(100dvh - 180px);
+    }
+    .section-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0}
+    .section-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-bottom:1px solid rgba(0,0,0,.06);position:sticky;top:0;background:var(--card);z-index:1;border-top-left-radius:var(--radius);border-top-right-radius:var(--radius)}
+    .section-header .toggle{all:unset;cursor:pointer;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+    .count{color:var(--muted);font-size:12px}
+    .section-body{padding:10px;overflow:auto;flex:1;display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));align-content:start}
+    .section-card.collapsed .section-body{display:none}
+
+    .tile{display:flex;align-items:center;gap:8px;padding:8px;border-radius:10px;background:rgba(0,0,0,.03);text-decoration:none;color:var(--text);transition:background .15s ease, transform .12s ease}
+    .tile:hover{background:rgba(0,0,0,.06);transform:translateY(-1px)}
+    .icon{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;overflow:hidden;background:#f3f4f6;flex:0 0 20px}
+    .icon img{width:100%;height:100%;object-fit:cover;display:block}
+    .label{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    footer{color:var(--muted);font-size:12px;max-width:1700px;margin:0 auto;width:100%;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:rgba(0,0,0,.08);border-radius:6px;padding:2px 6px;font-size:12px}
+    @media (max-width: 700px){ main.dashboard{ height:auto } .toolbar{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body data-dashlane-rid="545bff8948826063">
+  <header class="top">
+    <div class="title">🧩 Zones interactives — Import / Export</div>
+    <div class="hint">Généré le 2025-09-11 13:06 • <span class="kbd">/</span> focuser le filtre local</div>
+  </header>
+
+  <div class="toolbar">
+    <input id="localFilter" type="search" placeholder="Filtrer vos liens (instantané)…" autocomplete="off" data-dashlane-rid="c35bd6d331fdd887">
+    <div class="actions">
+      <button id="expandAll" type="button" data-dashlane-label="true" data-dashlane-rid="60e784e7004fc52f">Tout déplier</button>
+      <button id="collapseAll" type="button" data-dashlane-label="true" data-dashlane-rid="0050ea11a23609ce">Tout replier</button>
+      <button id="importBtn" type="button" data-dashlane-label="true" data-dashlane-rid="aadda9df5042908d">Importer CSV</button>
+      <button id="exportBtn" type="button" data-dashlane-label="true" data-dashlane-rid="4439a7d7fc622390">Exporter CSV</button>
+<button id="exportHtmlBtn" type="button" data-dashlane-label="true" data-dashlane-rid="63694bde08bbccb4">Exporter HTML</button>
+      <input id="fileInput" type="file" accept=".csv,text/csv">
+    </div>
+    <select id="engine" data-dashlane-rid="0f6d1ad378a01e47"><option value="qwant">Qwant</option><option value="google">Google</option><option value="duckduckgo">DuckDuckGo</option><option value="brave">Brave</option><option value="bing">Bing</option><option value="startpage">Startpage</option><option value="qwant">Qwant</option><option value="google">Google</option><option value="duckduckgo">DuckDuckGo</option><option value="brave">Brave</option><option value="bing">Bing</option><option value="startpage">Startpage</option><option value="qwant">Qwant</option><option value="google">Google</option><option value="duckduckgo">DuckDuckGo</option><option value="brave">Brave</option><option value="bing">Bing</option><option value="startpage">Startpage</option><option value="qwant">Qwant</option><option value="google">Google</option><option value="duckduckgo">DuckDuckGo</option><option value="brave">Brave</option><option value="bing">Bing</option><option value="startpage">Startpage</option></select>
+    <button id="webSearch" class="primary" type="button" data-dashlane-label="true" data-dashlane-rid="f201a9e0d093cd99">Recherche Web</button>
+  </div>
+
+  <main class="dashboard" id="dashboard"><section class="section-card" data-cat="outils_pro"><header class="section-header"><button class="toggle">Outils pro</button><span class="count">9 liens</span></header><div class="section-body"><a class="tile" href="https://acdondemand.coaxis.com/" target="_blank" rel="noopener" data-name="acd" data-domain="acdondemand.coaxis.com" data-url="https://acdondemand.coaxis.com/" style="display: flex;"><div class="icon"><img data-domain="acdondemand.coaxis.com" data-simple="acd" alt="ACD" data-step="0" src="https://icons.duckduckgo.com/ip3/acdondemand.coaxis.com.ico"></div><div class="label">ACD</div></a><a class="tile" href="https://app.dext.com/fr/sign/in" target="_blank" rel="noopener" data-name="dext" data-domain="app.dext.com" data-url="https://app.dext.com/fr/sign/in" style="display: flex;"><div class="icon"><img data-domain="app.dext.com" data-simple="dext" alt="Dext" data-step="0" src="https://icons.duckduckgo.com/ip3/app.dext.com.ico"></div><div class="label">Dext</div></a><a class="tile" href="https://mon-expert-en-gestion.fr/portail/#/home" target="_blank" rel="noopener" data-name="meg" data-domain="mon-expert-en-gestion.fr" data-url="https://mon-expert-en-gestion.fr/portail/#/home" style="display: flex;"><div class="icon"><img data-domain="mon-expert-en-gestion.fr" data-simple="meg" alt="MEG" data-step="0" src="https://icons.duckduckgo.com/ip3/mon-expert-en-gestion.fr.ico"></div><div class="label">MEG</div></a><a class="tile" href="https://app.sesha.expert/" target="_blank" rel="noopener" data-name="sesha" data-domain="app.sesha.expert" data-url="https://app.sesha.expert/" style="display: flex;"><div class="icon"><img data-domain="app.sesha.expert" data-simple="sesha" alt="SESHA" data-step="0" src="https://icons.duckduckgo.com/ip3/app.sesha.expert.ico"></div><div class="label">SESHA</div></a><a class="tile" href="https://my.devizen.fr/" target="_blank" rel="noopener" data-name="devizen" data-domain="my.devizen.fr" data-url="https://my.devizen.fr/" style="display: flex;"><div class="icon"><img data-domain="my.devizen.fr" data-simple="devizen" alt="DEVIZEN" data-step="0" src="https://icons.duckduckgo.com/ip3/my.devizen.fr.ico"></div><div class="label">DEVIZEN</div></a><a class="tile" href="https://e-ecf.fr/Dashboard/fiscalComplianceReviews?vads_amount=0&amp;vads_auth_mode=MARK&amp;vads_auth_number=524596&amp;vads_auth_result=00&amp;vads_capture_delay=0&amp;vads_card_brand=VISA&amp;vads_card_number=473933XXXXXX0009&amp;vads_payment_certificate=21462b08a59c3b16da8c40b1ed176a929c96f9ae&amp;vads_ctx_mode=PRODUCTION&amp;vads_currency=978&amp;vads_effective_amount=0&amp;vads_effective_currency=978&amp;vads_site_id=33000580&amp;vads_trans_date=20240604132114&amp;vads_trans_id=n2114l&amp;vads_trans_uuid=5f52006c538949b48b1e233f1bad3db5&amp;vads_initial_issuer_transaction_identifier=3484156481709586&amp;vads_validation_mode=0&amp;vads_version=V2&amp;vads_warranty_result=NO&amp;vads_payment_src=EC&amp;vads_order_id=CO_1416_1712064744342&amp;vads_cust_email=thomas.echappe@atemifc.com&amp;vads_cust_legal_name=ATEMI+FINANCE+CONSEIL&amp;vads_tid=001&amp;vads_sequence_number=2&amp;vads_acquirer_network=CB&amp;vads_cardholder_card_number=473933XXXXXX0009&amp;vads_contract_used=1395522&amp;vads_trans_status=ACCEPTED&amp;vads_expiry_month=2&amp;vads_expiry_year=2025&amp;vads_cardholder_card_expiry_month=2&amp;vads_cardholder_card_expiry_year=2025&amp;vads_bank_label=BPCE&amp;vads_bank_product=G&amp;vads_pays_ip=GB&amp;vads_effective_creation_date=20240604132219&amp;vads_identifier=02149fb39cbf43e193711a9bbd33922f&amp;vads_identifier_status=CREATED&amp;vads_occurrence_type=RECURRENT_INITIAL&amp;vads_operation_type=VERIFICATION&amp;vads_result=00&amp;vads_extra_result=&amp;vads_card_country=FR&amp;vads_language=fr&amp;vads_brand_management={%22userChoice%22:false,%22brandList%22:%22VISA%22,%22brand%22:%22VISA%22}&amp;vads_action_mode=INTERACTIVE&amp;vads_page_action=REGISTER&amp;vads_card_product_category=CREDIT&amp;vads_card_nature=BUSINESS&amp;vads_archival_reference_id=L156n2114l02&amp;vads_threeds_enrolled=Y&amp;vads_threeds_auth_type=CHALLENGE&amp;vads_threeds_eci=05&amp;vads_threeds_xid=&amp;vads_threeds_cavvAlgorithm=&amp;vads_threeds_status=Y&amp;vads_threeds_sign_valid=&amp;vads_threeds_error_code=&amp;vads_threeds_exit_status=10&amp;vads_threeds_user_interaction=&amp;vads_threeds_cavv=A**************************=&amp;signature=Zo0Zb/htf4Zfp09vwtcQUNPpROtqKPdDnx9%2Bn0Aa8Q0=" target="_blank" rel="noopener" data-name="e-ecf" data-domain="e-ecf.fr" data-url="https://e-ecf.fr/dashboard/fiscalcompliancereviews?vads_amount=0&amp;vads_auth_mode=mark&amp;vads_auth_number=524596&amp;vads_auth_result=00&amp;vads_capture_delay=0&amp;vads_card_brand=visa&amp;vads_card_number=473933xxxxxx0009&amp;vads_payment_certificate=21462b08a59c3b16da8c40b1ed176a929c96f9ae&amp;vads_ctx_mode=production&amp;vads_currency=978&amp;vads_effective_amount=0&amp;vads_effective_currency=978&amp;vads_site_id=33000580&amp;vads_trans_date=20240604132114&amp;vads_trans_id=n2114l&amp;vads_trans_uuid=5f52006c538949b48b1e233f1bad3db5&amp;vads_initial_issuer_transaction_identifier=3484156481709586&amp;vads_validation_mode=0&amp;vads_version=v2&amp;vads_warranty_result=no&amp;vads_payment_src=ec&amp;vads_order_id=co_1416_1712064744342&amp;vads_cust_email=thomas.echappe@atemifc.com&amp;vads_cust_legal_name=atemi+finance+conseil&amp;vads_tid=001&amp;vads_sequence_number=2&amp;vads_acquirer_network=cb&amp;vads_cardholder_card_number=473933xxxxxx0009&amp;vads_contract_used=1395522&amp;vads_trans_status=accepted&amp;vads_expiry_month=2&amp;vads_expiry_year=2025&amp;vads_cardholder_card_expiry_month=2&amp;vads_cardholder_card_expiry_year=2025&amp;vads_bank_label=bpce&amp;vads_bank_product=g&amp;vads_pays_ip=gb&amp;vads_effective_creation_date=20240604132219&amp;vads_identifier=02149fb39cbf43e193711a9bbd33922f&amp;vads_identifier_status=created&amp;vads_occurrence_type=recurrent_initial&amp;vads_operation_type=verification&amp;vads_result=00&amp;vads_extra_result=&amp;vads_card_country=fr&amp;vads_language=fr&amp;vads_brand_management={%22userchoice%22:false,%22brandlist%22:%22visa%22,%22brand%22:%22visa%22}&amp;vads_action_mode=interactive&amp;vads_page_action=register&amp;vads_card_product_category=credit&amp;vads_card_nature=business&amp;vads_archival_reference_id=l156n2114l02&amp;vads_threeds_enrolled=y&amp;vads_threeds_auth_type=challenge&amp;vads_threeds_eci=05&amp;vads_threeds_xid=&amp;vads_threeds_cavvalgorithm=&amp;vads_threeds_status=y&amp;vads_threeds_sign_valid=&amp;vads_threeds_error_code=&amp;vads_threeds_exit_status=10&amp;vads_threeds_user_interaction=&amp;vads_threeds_cavv=a**************************=&amp;signature=zo0zb/htf4zfp09vwtcqunpprotqkpddnx9%2bn0aa8q0=" style="display: flex;"><div class="icon"><img data-domain="e-ecf.fr" data-simple="eecf" alt="E-ECF" data-step="0" src="https://icons.duckduckgo.com/ip3/e-ecf.fr.ico"></div><div class="label">E-ECF</div></a><a class="tile" href="https://www.jedeclare.com/auth/realms/jdc-realm/protocol/openid-connect/auth?response_type=code&amp;client_id=jdc-auth-service&amp;redirect_uri=http%3A%2F%2Fwww.jedeclare.com%2Fwebapp%2F&amp;state=88861b47-30e9-443e-8c12-401f77cdae09&amp;login=true&amp;scope=openid" target="_blank" rel="noopener" data-name="jedeclare" data-domain="jedeclare.com" data-url="https://www.jedeclare.com/auth/realms/jdc-realm/protocol/openid-connect/auth?response_type=code&amp;client_id=jdc-auth-service&amp;redirect_uri=http%3a%2f%2fwww.jedeclare.com%2fwebapp%2f&amp;state=88861b47-30e9-443e-8c12-401f77cdae09&amp;login=true&amp;scope=openid" style="display: flex;"><div class="icon"><img data-domain="jedeclare.com" data-simple="jedeclare" alt="JEDECLARE" data-step="0" src="https://icons.duckduckgo.com/ip3/jedeclare.com.ico"></div><div class="label">JEDECLARE</div></a><a class="tile" href="https://isuiteatemi.coaxis.com/" target="_blank" rel="noopener" data-name="i-suite" data-domain="isuiteatemi.coaxis.com" data-url="https://isuiteatemi.coaxis.com/" style="display: flex;"><div class="icon"><img data-domain="isuiteatemi.coaxis.com" data-simple="isuite" alt="I-SUITE" data-step="0" src="https://icons.duckduckgo.com/ip3/isuiteatemi.coaxis.com.ico"></div><div class="label">I-SUITE</div></a><a class="tile" href="https://my.eic.fr/RDWeb/Pages/fr-FR/Default.aspx" target="_blank" rel="noopener" data-name="eic" data-domain="my.eic.fr" data-url="https://my.eic.fr/rdweb/pages/fr-fr/default.aspx" style="display: flex;"><div class="icon"><img data-domain="my.eic.fr" data-simple="eic" alt="EIC" data-step="0" src="https://icons.duckduckgo.com/ip3/my.eic.fr.ico"></div><div class="label">EIC</div></a></div></section><section class="section-card" data-cat="fiscal_/_social"><header class="section-header"><button class="toggle">Fiscal / Social</button><span class="count">6 liens</span></header><div class="section-body"><a class="tile" href="https://portailpro.gouv.fr/" target="_blank" rel="noopener" data-name="portail gouv" data-domain="portailpro.gouv.fr" data-url="https://portailpro.gouv.fr/" style="display: flex;"><div class="icon"><img data-domain="portailpro.gouv.fr" data-simple="portailgouv" alt="PORTAIL GOUV" data-step="0" src="https://icons.duckduckgo.com/ip3/portailpro.gouv.fr.ico"></div><div class="label">PORTAIL GOUV</div></a><a class="tile" href="https://cfspro-idp.impots.gouv.fr/oauth2/authorize?response_type=code&amp;redirect_uri=https%3A%2F%2Fcfspro.impots.gouv.fr%2F%3Fopenidconnectcallback%3D1&amp;nonce=1672823292_36663&amp;client_id=id_cfspro_prod&amp;display=&amp;state=1672823292_28831&amp;scope=openid%20profile%20email%20info" target="_blank" rel="noopener" data-name="impots.gouv" data-domain="cfspro-idp.impots.gouv.fr" data-url="https://cfspro-idp.impots.gouv.fr/oauth2/authorize?response_type=code&amp;redirect_uri=https%3a%2f%2fcfspro.impots.gouv.fr%2f%3fopenidconnectcallback%3d1&amp;nonce=1672823292_36663&amp;client_id=id_cfspro_prod&amp;display=&amp;state=1672823292_28831&amp;scope=openid%20profile%20email%20info" style="display: flex;"><div class="icon"><img data-domain="cfspro-idp.impots.gouv.fr" data-simple="impotsgouv" alt="IMPOTS.GOUV" data-step="0" src="https://icons.duckduckgo.com/ip3/cfspro-idp.impots.gouv.fr.ico"></div><div class="label">IMPOTS.GOUV</div></a><a class="tile" href="https://www.urssaf.fr/portail/portail/home/connectez-vous.html" target="_blank" rel="noopener" data-name="urssaf" data-domain="urssaf.fr" data-url="https://www.urssaf.fr/portail/portail/home/connectez-vous.html" style="display: flex;"><div class="icon"><img data-domain="urssaf.fr" data-simple="urssaf" alt="URSSAF" data-step="0" src="https://icons.duckduckgo.com/ip3/urssaf.fr.ico"></div><div class="label">URSSAF</div></a><a class="tile" href="https://www.artistes-auteurs.urssaf.fr/aa/tableau-bord/accueil" target="_blank" rel="noopener" data-name="artistes-auteurs" data-domain="artistes-auteurs.urssaf.fr" data-url="https://www.artistes-auteurs.urssaf.fr/aa/tableau-bord/accueil" style="display: flex;"><div class="icon"><img data-domain="artistes-auteurs.urssaf.fr" data-simple="artistesauteurs" alt="ARTISTES-AUTEURS" data-step="0" src="https://icons.duckduckgo.com/ip3/artistes-auteurs.urssaf.fr.ico"></div><div class="label">ARTISTES-AUTEURS</div></a><a class="tile" href="https://webti.urssaf.fr/dri" target="_blank" rel="noopener" data-name="dri urssaf" data-domain="webti.urssaf.fr" data-url="https://webti.urssaf.fr/dri" style="display: flex;"><div class="icon"><img data-domain="webti.urssaf.fr" data-simple="driurssaf" alt="DRI URSSAF" data-step="0" src="https://icons.duckduckgo.com/ip3/webti.urssaf.fr.ico"></div><div class="label">DRI URSSAF</div></a><a class="tile" href="https://www.contact.urssaf.fr/mosaic/categorie.do" target="_blank" rel="noopener" data-name="contact.urssaf" data-domain="contact.urssaf.fr" data-url="https://www.contact.urssaf.fr/mosaic/categorie.do" style="display: flex;"><div class="icon"><img data-domain="contact.urssaf.fr" data-simple="contacturssaf" alt="CONTACT.URSSAF" data-step="0" src="https://icons.duckduckgo.com/ip3/contact.urssaf.fr.ico"></div><div class="label">CONTACT.URSSAF</div></a></div></section><section class="section-card" data-cat="juridique"><header class="section-header"><button class="toggle">Juridique</button><span class="count">9 liens</span></header><div class="section-body"><a class="tile" href="https://app.impalact.fr/index.php?id=accueil-professionnel&amp;no_cache=1" target="_blank" rel="noopener" data-name="impalact" data-domain="app.impalact.fr" data-url="https://app.impalact.fr/index.php?id=accueil-professionnel&amp;no_cache=1" style="display: flex;"><div class="icon"><img data-domain="app.impalact.fr" data-simple="impalact" alt="IMPALACT" data-step="0" src="https://icons.duckduckgo.com/ip3/app.impalact.fr.ico"></div><div class="label">IMPALACT</div></a><a class="tile" href="https://procedures.inpi.fr/?/" target="_blank" rel="noopener" data-name="guichet unique" data-domain="procedures.inpi.fr" data-url="https://procedures.inpi.fr/?/" style="display: flex;"><div class="icon"><img data-domain="procedures.inpi.fr" data-simple="guichetunique" alt="GUICHET UNIQUE" data-step="0" src="https://icons.duckduckgo.com/ip3/procedures.inpi.fr.ico"></div><div class="label">GUICHET UNIQUE</div></a><a class="tile" href="https://www.infogreffe.fr/" target="_blank" rel="noopener" data-name="infogreffe" data-domain="infogreffe.fr" data-url="https://www.infogreffe.fr/" style="display: flex;"><div class="icon"><img data-domain="infogreffe.fr" data-simple="infogreffe" alt="INFOGREFFE" data-step="0" src="https://icons.duckduckgo.com/ip3/infogreffe.fr.ico"></div><div class="label">INFOGREFFE</div></a><a class="tile" href="https://extranet.jesignexpert.com/public/logout" target="_blank" rel="noopener" data-name="jesignexpert" data-domain="extranet.jesignexpert.com" data-url="https://extranet.jesignexpert.com/public/logout" style="display: flex;"><div class="icon"><img data-domain="extranet.jesignexpert.com" data-simple="jesignexpert" alt="JESIGNEXPERT" data-step="0" src="https://icons.duckduckgo.com/ip3/extranet.jesignexpert.com.ico"></div><div class="label">JESIGNEXPERT</div></a><a class="tile" href="https://annonces.legal2digital.fr/" target="_blank" rel="noopener" data-name="legal2digital" data-domain="annonces.legal2digital.fr" data-url="https://annonces.legal2digital.fr/" style="display: flex;"><div class="icon"><img data-domain="annonces.legal2digital.fr" data-simple="legal2digital" alt="LEGAL2DIGITAL" data-step="0" src="https://icons.duckduckgo.com/ip3/annonces.legal2digital.fr.ico"></div><div class="label">LEGAL2DIGITAL</div></a><a class="tile" href="https://pro.annonces-legales.fr/?page=1" target="_blank" rel="noopener" data-name="annonces-legales" data-domain="pro.annonces-legales.fr" data-url="https://pro.annonces-legales.fr/?page=1" style="display: flex;"><div class="icon"><img data-domain="pro.annonces-legales.fr" data-simple="annonceslegales" alt="ANNONCES-LEGALES" data-step="0" src="https://icons.duckduckgo.com/ip3/pro.annonces-legales.fr.ico"></div><div class="label">ANNONCES-LEGALES</div></a><a class="tile" href="https://guichetunique.experts-comptables.org/" target="_blank" rel="noopener" data-name="assitance inpi oec" data-domain="guichetunique.experts-comptables.org" data-url="https://guichetunique.experts-comptables.org/" style="display: flex;"><div class="icon"><img data-domain="guichetunique.experts-comptables.org" data-simple="assitanceinpioec" alt="ASSITANCE INPI OEC" data-step="0" src="https://icons.duckduckgo.com/ip3/guichetunique.experts-comptables.org.ico"></div><div class="label">ASSITANCE INPI OEC</div></a><a class="tile" href="https://monjuridique.infogreffe.fr/" target="_blank" rel="noopener" data-name="infogreffe" data-domain="monjuridique.infogreffe.fr" data-url="https://monjuridique.infogreffe.fr/" style="display: flex;"><div class="icon"><img data-domain="monjuridique.infogreffe.fr" data-simple="infogreffe" alt="INFOGREFFE" data-step="0" src="https://icons.duckduckgo.com/ip3/monjuridique.infogreffe.fr.ico"></div><div class="label">INFOGREFFE</div></a><a class="tile" href="https://www.pappers.fr/" target="_blank" rel="noopener" data-name="pappers" data-domain="pappers.fr" data-url="https://www.pappers.fr/" style="display: flex;"><div class="icon"><img data-domain="pappers.fr" data-simple="pappers" alt="PAPPERS" data-step="0" src="https://icons.duckduckgo.com/ip3/pappers.fr.ico"></div><div class="label">PAPPERS</div></a></div></section><section class="section-card" data-cat="paie_clients"><header class="section-header"><button class="toggle">Paie clients</button><span class="count">8 liens</span></header><div class="section-body"><a class="tile" href="https://orh-paie2022.silae.fr/silae" target="_blank" rel="noopener" data-name="silae orh paie" data-domain="orh-paie2022.silae.fr" data-url="https://orh-paie2022.silae.fr/silae" style="display: flex;"><div class="icon"><img data-domain="orh-paie2022.silae.fr" data-simple="silaeorhpaie" alt="SILAE ORH PAIE" data-step="0" src="https://icons.duckduckgo.com/ip3/orh-paie2022.silae.fr.ico"></div><div class="label">SILAE ORH PAIE</div></a><a class="tile" href="http://social.ideo-conseil.fr/debut.aspx" target="_blank" rel="noopener" data-name="silae ideo conseil" data-domain="social.ideo-conseil.fr" data-url="http://social.ideo-conseil.fr/debut.aspx" style="display: flex;"><div class="icon"><img data-domain="social.ideo-conseil.fr" data-simple="silaeideoconseil" alt="SILAE IDEO CONSEIL" data-step="0" src="https://icons.duckduckgo.com/ip3/social.ideo-conseil.fr.ico"></div><div class="label">SILAE IDEO CONSEIL</div></a><a class="tile" href="https://www.silaexpert02.fr/silae" target="_blank" rel="noopener" data-name="silae zen paie" data-domain="silaexpert02.fr" data-url="https://www.silaexpert02.fr/silae" style="display: flex;"><div class="icon"><img data-domain="silaexpert02.fr" data-simple="silaezenpaie" alt="SILAE ZEN PAIE" data-step="0" src="https://icons.duckduckgo.com/ip3/silaexpert02.fr.ico"></div><div class="label">SILAE ZEN PAIE</div></a><a class="tile" href="https://evidence.silae.fr/SILAE" target="_blank" rel="noopener" data-name="silae evidence paie" data-domain="evidence.silae.fr" data-url="https://evidence.silae.fr/silae" style="display: flex;"><div class="icon"><img data-domain="evidence.silae.fr" data-simple="silaeevidencepaie" alt="SILAE EVIDENCE PAIE" data-step="0" src="https://icons.duckduckgo.com/ip3/evidence.silae.fr.ico"></div><div class="label">SILAE EVIDENCE PAIE</div></a><a class="tile" href="https://app.openpaye.co/" target="_blank" rel="noopener" data-name="openpaye evidence paie" data-domain="app.openpaye.co" data-url="https://app.openpaye.co/" style="display: flex;"><div class="icon"><img data-domain="app.openpaye.co" data-simple="openpayeevidencepaie" alt="OPENPAYE EVIDENCE PAIE" data-step="0" src="https://icons.duckduckgo.com/ip3/app.openpaye.co.ico"></div><div class="label">OPENPAYE EVIDENCE PAIE</div></a><a class="tile" href="https://texteditpaye.silae.fr/silae" target="_blank" rel="noopener" data-name="silae textedipaye" data-domain="texteditpaye.silae.fr" data-url="https://texteditpaye.silae.fr/silae" style="display: flex;"><div class="icon"><img data-domain="texteditpaye.silae.fr" data-simple="silaetextedipaye" alt="SILAE TEXTEDIPAYE" data-step="0" src="https://icons.duckduckgo.com/ip3/texteditpaye.silae.fr.ico"></div><div class="label">SILAE TEXTEDIPAYE</div></a><a class="tile" href="http://www.silaexpert05.fr/silae" target="_blank" rel="noopener" data-name="silae fidaco" data-domain="silaexpert05.fr" data-url="http://www.silaexpert05.fr/silae" style="display: flex;"><div class="icon"><img data-domain="silaexpert05.fr" data-simple="silaefidaco" alt="SILAE FIDACO" data-step="0" src="https://icons.duckduckgo.com/ip3/silaexpert05.fr.ico"></div><div class="label">SILAE FIDACO</div></a><a class="tile" href="https://aazexperts.silae.fr/silae" target="_blank" rel="noopener" data-name="silae aaz experts" data-domain="aazexperts.silae.fr" data-url="https://aazexperts.silae.fr/silae" style="display: flex;"><div class="icon"><img data-domain="aazexperts.silae.fr" data-simple="silaeaazexperts" alt="SILAE AAZ EXPERTS" data-step="0" src="https://icons.duckduckgo.com/ip3/aazexperts.silae.fr.ico"></div><div class="label">SILAE AAZ EXPERTS</div></a></div></section><section class="section-card" data-cat="informatique"><header class="section-header"><button class="toggle">Informatique</button><span class="count">8 liens</span></header><div class="section-body"><a class="tile" href="https://chat.openai.com/chat" target="_blank" rel="noopener" data-name="chat-gpt" data-domain="chat.openai.com" data-url="https://chat.openai.com/chat" style="display: flex;"><div class="icon"><img data-domain="chat.openai.com" data-simple="chatgpt" alt="CHAT-GPT" data-step="0" src="https://icons.duckduckgo.com/ip3/chat.openai.com.ico"></div><div class="label">CHAT-GPT</div></a><a class="tile" href="https://trucdecomptable.fr/index.html" target="_blank" rel="noopener" data-name="trucdecomptable" data-domain="trucdecomptable.fr" data-url="https://trucdecomptable.fr/index.html" style="display: flex;"><div class="icon"><img data-domain="trucdecomptable.fr" data-simple="trucdecomptable" alt="TRUCDECOMPTABLE" data-step="0" src="https://icons.duckduckgo.com/ip3/trucdecomptable.fr.ico"></div><div class="label">TRUCDECOMPTABLE</div></a><a class="tile" href="https://www.ilovepdf.com/fr" target="_blank" rel="noopener" data-name="ilovepdf" data-domain="ilovepdf.com" data-url="https://www.ilovepdf.com/fr" style="display: flex;"><div class="icon"><img data-domain="ilovepdf.com" data-simple="ilovepdf" alt="ILOVEPDF" data-step="0" src="https://icons.duckduckgo.com/ip3/ilovepdf.com.ico"></div><div class="label">ILOVEPDF</div></a><a class="tile" href="https://atemiexpertcomptable.com/wp-admin/" target="_blank" rel="noopener" data-name="atemiexpertcomptable" data-domain="atemiexpertcomptable.com" data-url="https://atemiexpertcomptable.com/wp-admin/" style="display: flex;"><div class="icon"><img data-domain="atemiexpertcomptable.com" data-simple="atemiexpertcomptable" alt="ATEMIEXPERTCOMPTABLE" data-step="0" src="https://icons.duckduckgo.com/ip3/atemiexpertcomptable.com.ico"></div><div class="label">ATEMIEXPERTCOMPTABLE</div></a><a class="tile" href="https://my.remarkable.com/" target="_blank" rel="noopener" data-name="remarkable" data-domain="my.remarkable.com" data-url="https://my.remarkable.com/" style="display: flex;"><div class="icon"><img data-domain="my.remarkable.com" data-simple="remarkable" alt="REMARKABLE" data-step="0" src="https://icons.duckduckgo.com/ip3/my.remarkable.com.ico"></div><div class="label">REMARKABLE</div></a><a class="tile" href="https://trucdecomptable.fr/" target="_blank" rel="noopener" data-name="trucs de comptable" data-domain="trucdecomptable.fr" data-url="https://trucdecomptable.fr/" style="display: flex;"><div class="icon"><img data-domain="trucdecomptable.fr" data-simple="trucsdecomptable" alt="TRUCS DE COMPTABLE" data-step="0" src="https://icons.duckduckgo.com/ip3/trucdecomptable.fr.ico"></div><div class="label">TRUCS DE COMPTABLE</div></a><a class="tile" href="https://visufec.fr/" target="_blank" rel="noopener" data-name="visu fec" data-domain="visufec.fr" data-url="https://visufec.fr/" style="display: flex;"><div class="icon"><img data-domain="visufec.fr" data-simple="visufec" alt="VISU FEC" data-step="0" src="https://icons.duckduckgo.com/ip3/visufec.fr.ico"></div><div class="label">VISU FEC</div></a><a class="tile" href="https://github.com/thomasechappe49" target="_blank" rel="noopener" data-name="github" data-domain="github.com" data-url="https://github.com/thomasechappe49" style="display: flex;"><div class="icon"><img data-domain="github.com" data-simple="github" alt="GitHub" data-step="0" src="https://icons.duckduckgo.com/ip3/github.com.ico"></div><div class="label">GitHub</div></a></div></section><section class="section-card" data-cat="reseau"><header class="section-header"><button class="toggle">Reseau</button><span class="count">5 liens</span></header><div class="section-body"><a class="tile" href="https://les-nouv-l-expertes.slack.com/" target="_blank" rel="noopener" data-name="lne slack" data-domain="les-nouv-l-expertes.slack.com" data-url="https://les-nouv-l-expertes.slack.com/" style="display: flex;"><div class="icon"><img data-domain="les-nouv-l-expertes.slack.com" data-simple="lneslack" alt="LNE SLACK" data-step="0" src="https://icons.duckduckgo.com/ip3/les-nouv-l-expertes.slack.com.ico"></div><div class="label">LNE SLACK</div></a><a class="tile" href="https://www.linkedin.com/feed/" target="_blank" rel="noopener" data-name="linkedin" data-domain="linkedin.com" data-url="https://www.linkedin.com/feed/" style="display: flex;"><div class="icon"><img data-domain="linkedin.com" data-simple="linkedin" alt="LINKEDIN" data-step="0" src="https://icons.duckduckgo.com/ip3/linkedin.com.ico"></div><div class="label">LINKEDIN</div></a><a class="tile" href="https://les-nouv-l-expertes.org/adherent/mon-espace" target="_blank" rel="noopener" data-name="lne mon espace" data-domain="les-nouv-l-expertes.org" data-url="https://les-nouv-l-expertes.org/adherent/mon-espace" style="display: flex;"><div class="icon"><img data-domain="les-nouv-l-expertes.org" data-simple="lnemonespace" alt="LNE MON ESPACE" data-step="0" src="https://icons.duckduckgo.com/ip3/les-nouv-l-expertes.org.ico"></div><div class="label">LNE MON ESPACE</div></a><a class="tile" href="https://adherents.c2a49.fr/" target="_blank" rel="noopener" data-name="c2a" data-domain="adherents.c2a49.fr" data-url="https://adherents.c2a49.fr/" style="display: flex;"><div class="icon"><img data-domain="adherents.c2a49.fr" data-simple="c2a" alt="C2A" data-step="0" src="https://icons.duckduckgo.com/ip3/adherents.c2a49.fr.ico"></div><div class="label">C2A</div></a><a class="tile" href="https://les-nouv-l-expertes.catalogueformpro.com/" target="_blank" rel="noopener" data-name="lne formations" data-domain="les-nouv-l-expertes.catalogueformpro.com" data-url="https://les-nouv-l-expertes.catalogueformpro.com/" style="display: flex;"><div class="icon"><img data-domain="les-nouv-l-expertes.catalogueformpro.com" data-simple="lneformations" alt="LNE FORMATIONS" data-step="0" src="https://icons.duckduckgo.com/ip3/les-nouv-l-expertes.catalogueformpro.com.ico"></div><div class="label">LNE FORMATIONS</div></a></div></section><section class="section-card" data-cat="ordre"><header class="section-header"><button class="toggle">Ordre</button><span class="count">2 liens</span></header><div class="section-body"><a class="tile" href="https://www.experts-comptables.fr/" target="_blank" rel="noopener" data-name="oec" data-domain="experts-comptables.fr" data-url="https://www.experts-comptables.fr/" style="display: flex;"><div class="icon"><img data-domain="experts-comptables.fr" data-simple="oec" alt="OEC" data-step="0" src="https://icons.duckduckgo.com/ip3/experts-comptables.fr.ico"></div><div class="label">OEC</div></a><a class="tile" href="https://www.imagepme.fr/fr?check_logged_in=1" target="_blank" rel="noopener" data-name="image-pme" data-domain="imagepme.fr" data-url="https://www.imagepme.fr/fr?check_logged_in=1" style="display: flex;"><div class="icon"><img data-domain="imagepme.fr" data-simple="imagepme" alt="IMAGE-PME" data-step="0" src="https://icons.duckduckgo.com/ip3/imagepme.fr.ico"></div><div class="label">IMAGE-PME</div></a></div></section><section class="section-card" data-cat="gestion"><header class="section-header"><button class="toggle">Gestion</button><span class="count">4 liens</span></header><div class="section-body"><a class="tile" href="https://www.credicys.fr/" target="_blank" rel="noopener" data-name="credicys" data-domain="credicys.fr" data-url="https://www.credicys.fr/" style="display: flex;"><div class="icon"><img data-domain="credicys.fr" data-simple="credicys" alt="CREDICYS" data-step="0" src="https://icons.duckduckgo.com/ip3/credicys.fr.ico"></div><div class="label">CREDICYS</div></a><a class="tile" href="https://mesimpayes.infogreffe.fr/" target="_blank" rel="noopener" data-name="mesimpayes" data-domain="mesimpayes.infogreffe.fr" data-url="https://mesimpayes.infogreffe.fr/" style="display: flex;"><div class="icon"><img data-domain="mesimpayes.infogreffe.fr" data-simple="mesimpayes" alt="MESIMPAYES" data-step="1" src="https://www.google.com/s2/favicons?sz=64&amp;domain=mesimpayes.infogreffe.fr"></div><div class="label">MESIMPAYES</div></a><a class="tile" href="https://docs.google.com/spreadsheets/d/1xHMiSH7T-BqDYke34b6lmWJjQDjhiqGlSQlTZBeks_4/edit#gid=0" target="_blank" rel="noopener" data-name="previsibilite" data-domain="docs.google.com" data-url="https://docs.google.com/spreadsheets/d/1xhmish7t-bqdyke34b6lmwjjqdjhiqglsqltzbeks_4/edit#gid=0" style="display: flex;"><div class="icon"><img data-domain="docs.google.com" data-simple="previsibilite" alt="PREVISIBILITE" data-step="0" src="https://icons.duckduckgo.com/ip3/docs.google.com.ico"></div><div class="label">PREVISIBILITE</div></a><a class="tile" href="https://monentreprise.wiismile.fr/beneficiary" target="_blank" rel="noopener" data-name="wiismile" data-domain="monentreprise.wiismile.fr" data-url="https://monentreprise.wiismile.fr/beneficiary" style="display: flex;"><div class="icon"><img data-domain="monentreprise.wiismile.fr" data-simple="wiismile" alt="WIISMILE" data-step="0" src="https://icons.duckduckgo.com/ip3/monentreprise.wiismile.fr.ico"></div><div class="label">WIISMILE</div></a></div></section><section class="section-card" data-cat="salaires"><header class="section-header"><button class="toggle">Salaires</button><span class="count">6 liens</span></header><div class="section-body"><a class="tile" href="https://myatlas.opco-atlas.fr/" target="_blank" rel="noopener" data-name="my atlas" data-domain="myatlas.opco-atlas.fr" data-url="https://myatlas.opco-atlas.fr/" style="display: flex;"><div class="icon"><img data-domain="myatlas.opco-atlas.fr" data-simple="myatlas" alt="MY ATLAS" data-step="0" src="https://icons.duckduckgo.com/ip3/myatlas.opco-atlas.fr.ico"></div><div class="label">MY ATLAS</div></a><a class="tile" href="https://app.staffngo.com/#/home" target="_blank" rel="noopener" data-name="staff n go" data-domain="app.staffngo.com" data-url="https://app.staffngo.com/#/home" style="display: flex;"><div class="icon"><img data-domain="app.staffngo.com" data-simple="staffngo" alt="STAFF N GO" data-step="0" src="https://icons.duckduckgo.com/ip3/app.staffngo.com.ico"></div><div class="label">STAFF N GO</div></a><a class="tile" href="https://app.openpaye.co/MyApp/28763/Editions" target="_blank" rel="noopener" data-name="openpaye" data-domain="app.openpaye.co" data-url="https://app.openpaye.co/myapp/28763/editions" style="display: flex;"><div class="icon"><img data-domain="app.openpaye.co" data-simple="openpaye" alt="OPENPAYE" data-step="0" src="https://icons.duckduckgo.com/ip3/app.openpaye.co.ico"></div><div class="label">OPENPAYE</div></a><a class="tile" href="https://sylae.asp-public.fr/sylae/" target="_blank" rel="noopener" data-name="sylae" data-domain="sylae.asp-public.fr" data-url="https://sylae.asp-public.fr/sylae/" style="display: flex;"><div class="icon"><img data-domain="sylae.asp-public.fr" data-simple="sylae" alt="SYLAE" data-step="0" src="https://icons.duckduckgo.com/ip3/sylae.asp-public.fr.ico"></div><div class="label">SYLAE</div></a><a class="tile" href="https://myswisslife.fr/connection/login" target="_blank" rel="noopener" data-name="myswisslife" data-domain="myswisslife.fr" data-url="https://myswisslife.fr/connection/login" style="display: flex;"><div class="icon"><img data-domain="myswisslife.fr" data-simple="myswisslife" alt="MYSWISSLIFE" data-step="0" src="https://icons.duckduckgo.com/ip3/myswisslife.fr.ico"></div><div class="label">MYSWISSLIFE</div></a><a class="tile" href="https://www.cavec.fr/vous-etes-en-debut-dactivite/tout-savoir-sur-la-cavec/votre-compte-en-ligne/" target="_blank" rel="noopener" data-name="cavec" data-domain="cavec.fr" data-url="https://www.cavec.fr/vous-etes-en-debut-dactivite/tout-savoir-sur-la-cavec/votre-compte-en-ligne/" style="display: flex;"><div class="icon"><img data-domain="cavec.fr" data-simple="cavec" alt="CAVEC" data-step="0" src="https://icons.duckduckgo.com/ip3/cavec.fr.ico"></div><div class="label">CAVEC</div></a></div></section><section class="section-card" data-cat="documentation"><header class="section-header"><button class="toggle">Documentation</button><span class="count">2 liens</span></header><div class="section-body"><a class="tile" href="http://revuefiduciaire.grouperf.com/" target="_blank" rel="noopener" data-name="revue rf" data-domain="revuefiduciaire.grouperf.com" data-url="http://revuefiduciaire.grouperf.com/" style="display: flex;"><div class="icon"><img data-domain="revuefiduciaire.grouperf.com" data-simple="revuerf" alt="REVUE RF" data-step="0" src="https://icons.duckduckgo.com/ip3/revuefiduciaire.grouperf.com.ico"></div><div class="label">REVUE RF</div></a><a class="tile" href="https://www.dropbox.com/sh/iuacfwbga8x7om7/AACJCJ8zDZJQatqNBj1flxE5a?dl=0" target="_blank" rel="noopener" data-name="dropbox rf" data-domain="dropbox.com" data-url="https://www.dropbox.com/sh/iuacfwbga8x7om7/aacjcj8zdzjqatqnbj1flxe5a?dl=0" style="display: flex;"><div class="icon"><img data-domain="dropbox.com" data-simple="dropboxrf" alt="DROPBOX RF" data-step="0" src="https://icons.duckduckgo.com/ip3/dropbox.com.ico"></div><div class="label">DROPBOX RF</div></a></div></section><section class="section-card" data-cat="personnel"><header class="section-header"><button class="toggle">Personnel</button><span class="count">6 liens</span></header><div class="section-body"><a class="tile" href="https://www.amazon.fr/" target="_blank" rel="noopener" data-name="amazon" data-domain="amazon.fr" data-url="https://www.amazon.fr/" style="display: flex;"><div class="icon"><img data-domain="amazon.fr" data-simple="amazon" alt="AMAZON" data-step="0" src="https://icons.duckduckgo.com/ip3/amazon.fr.ico"></div><div class="label">AMAZON</div></a><a class="tile" href="https://0491966w.index-education.net/pronote/parent.html?identifiant=YnG6Pnn33YUm277q" target="_blank" rel="noopener" data-name="pronote" data-domain="0491966w.index-education.net" data-url="https://0491966w.index-education.net/pronote/parent.html?identifiant=yng6pnn33yum277q" style="display: flex;"><div class="icon"><img data-domain="0491966w.index-education.net" data-simple="pronote" alt="PRONOTE" data-step="0" src="https://icons.duckduckgo.com/ip3/0491966w.index-education.net.ico"></div><div class="label">PRONOTE</div></a><a class="tile" href="https://e-primo.fr/" target="_blank" rel="noopener" data-name="e-primo" data-domain="e-primo.fr" data-url="https://e-primo.fr/" style="display: flex;"><div class="icon"><img data-domain="e-primo.fr" data-simple="eprimo" alt="E-PRIMO" data-step="0" src="https://icons.duckduckgo.com/ip3/e-primo.fr.ico"></div><div class="label">E-PRIMO</div></a><a class="tile" href="https://services.ard.fr/fr/espaces-clients/etablissements/angers-bergson/accueil.html?no_cache=1" target="_blank" rel="noopener" data-name="cantine camille" data-domain="services.ard.fr" data-url="https://services.ard.fr/fr/espaces-clients/etablissements/angers-bergson/accueil.html?no_cache=1" style="display: flex;"><div class="icon"><img data-domain="services.ard.fr" data-simple="cantinecamille" alt="CANTINE CAMILLE" data-step="0" src="https://icons.duckduckgo.com/ip3/services.ard.fr.ico"></div><div class="label">CANTINE CAMILLE</div></a><a class="tile" href="https://mail.yahoo.com/" target="_blank" rel="noopener" data-name="yahoo" data-domain="mail.yahoo.com" data-url="https://mail.yahoo.com/" style="display: flex;"><div class="icon"><img data-domain="mail.yahoo.com" data-simple="yahoo" alt="YAHOO" data-step="0" src="https://icons.duckduckgo.com/ip3/mail.yahoo.com.ico"></div><div class="label">YAHOO</div></a><a class="tile" href="https://www.laposte.fr/lettre-recommandee-en-ligne" target="_blank" rel="noopener" data-name="la poste" data-domain="laposte.fr" data-url="https://www.laposte.fr/lettre-recommandee-en-ligne" style="display: flex;"><div class="icon"><img data-domain="laposte.fr" data-simple="laposte" alt="LA POSTE" data-step="0" src="https://icons.duckduckgo.com/ip3/laposte.fr.ico"></div><div class="label">LA POSTE</div></a></div></section><section class="section-card" data-cat="déplacements"><header class="section-header"><button class="toggle">Déplacements</button><span class="count">4 liens</span></header><div class="section-body"><a class="tile" href="https://www.google.fr/maps/@47.4726685,-0.5849191,14z?entry=ttu&amp;g_ep=EgoyMDI1MDkxMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener" data-name="maps" data-domain="google.fr" data-url="https://www.google.fr/maps/@47.4726685,-0.5849191,14z?entry=ttu&amp;g_ep=egoymdi1mdkxmc4wikxmdsoasafqaw%3d%3d" style="display: flex;"><div class="icon"><img data-domain="google.fr" data-simple="maps" alt="MAPS" data-step="0" src="https://icons.duckduckgo.com/ip3/google.fr.ico"></div><div class="label">MAPS</div></a><a class="tile" href="https://fr.hotels.com/?locale=fr_FR&amp;pos=HCOM_FR&amp;siteid=300000010" target="_blank" rel="noopener" data-name="hotels.com" data-domain="fr.hotels.com" data-url="https://fr.hotels.com/?locale=fr_fr&amp;pos=hcom_fr&amp;siteid=300000010" style="display: flex;"><div class="icon"><img data-domain="fr.hotels.com" data-simple="hotelscom" alt="HOTELS.COM" data-step="0" src="https://icons.duckduckgo.com/ip3/fr.hotels.com.ico"></div><div class="label">HOTELS.COM</div></a><a class="tile" href="https://www.booking.com/index.fr.html" target="_blank" rel="noopener" data-name="booking" data-domain="booking.com" data-url="https://www.booking.com/index.fr.html" style="display: flex;"><div class="icon"><img data-domain="booking.com" data-simple="booking" alt="BOOKING" data-step="0" src="https://icons.duckduckgo.com/ip3/booking.com.ico"></div><div class="label">BOOKING</div></a><a class="tile" href="https://www.sncf-connect.com/" target="_blank" rel="noopener" data-name="sncf connect" data-domain="sncf-connect.com" data-url="https://www.sncf-connect.com/" style="display: flex;"><div class="icon"><img data-domain="sncf-connect.com" data-simple="sncfconnect" alt="SNCF CONNECT" data-step="0" src="https://icons.duckduckgo.com/ip3/sncf-connect.com.ico"></div><div class="label">SNCF CONNECT</div></a></div></section></main>
+
+  <footer>
+    <div>Astuce : <span class="kbd">Alt</span> + clic sur un titre = replier/déplier toutes les autres</div>
+    <div>État des sections mémorisé localement</div>
+  </footer>
+
+<script>
+/* ===== DATA (initiale depuis Excel) ===== */
+let DATA = [
+  {
+    "category": "Outils pro",
+    "label": "ACD",
+    "url": "https://acdondemand.coaxis.com/",
+    "domain": "acdondemand.coaxis.com",
+    "simple": "acd"
+  },
+  {
+    "category": "Outils pro",
+    "label": "Dext",
+    "url": "https://app.dext.com/fr/sign/in",
+    "domain": "app.dext.com",
+    "simple": "dext"
+  },
+  {
+    "category": "Outils pro",
+    "label": "MEG",
+    "url": "https://mon-expert-en-gestion.fr/portail/#/home",
+    "domain": "mon-expert-en-gestion.fr",
+    "simple": "meg"
+  },
+  {
+    "category": "Outils pro",
+    "label": "SESHA",
+    "url": "https://app.sesha.expert/",
+    "domain": "app.sesha.expert",
+    "simple": "sesha"
+  },
+  {
+    "category": "Outils pro",
+    "label": "DEVIZEN",
+    "url": "https://my.devizen.fr/",
+    "domain": "my.devizen.fr",
+    "simple": "devizen"
+  },
+  {
+    "category": "Outils pro",
+    "label": "E-ECF",
+    "url": "https://e-ecf.fr/Dashboard/fiscalComplianceReviews?vads_amount=0&vads_auth_mode=MARK&vads_auth_number=524596&vads_auth_result=00&vads_capture_delay=0&vads_card_brand=VISA&vads_card_number=473933XXXXXX0009&vads_payment_certificate=21462b08a59c3b16da8c40b1ed176a929c96f9ae&vads_ctx_mode=PRODUCTION&vads_currency=978&vads_effective_amount=0&vads_effective_currency=978&vads_site_id=33000580&vads_trans_date=20240604132114&vads_trans_id=n2114l&vads_trans_uuid=5f52006c538949b48b1e233f1bad3db5&vads_initial_issuer_transaction_identifier=3484156481709586&vads_validation_mode=0&vads_version=V2&vads_warranty_result=NO&vads_payment_src=EC&vads_order_id=CO_1416_1712064744342&vads_cust_email=thomas.echappe@atemifc.com&vads_cust_legal_name=ATEMI+FINANCE+CONSEIL&vads_tid=001&vads_sequence_number=2&vads_acquirer_network=CB&vads_cardholder_card_number=473933XXXXXX0009&vads_contract_used=1395522&vads_trans_status=ACCEPTED&vads_expiry_month=2&vads_expiry_year=2025&vads_cardholder_card_expiry_month=2&vads_cardholder_card_expiry_year=2025&vads_bank_label=BPCE&vads_bank_product=G&vads_pays_ip=GB&vads_effective_creation_date=20240604132219&vads_identifier=02149fb39cbf43e193711a9bbd33922f&vads_identifier_status=CREATED&vads_occurrence_type=RECURRENT_INITIAL&vads_operation_type=VERIFICATION&vads_result=00&vads_extra_result=&vads_card_country=FR&vads_language=fr&vads_brand_management={%22userChoice%22:false,%22brandList%22:%22VISA%22,%22brand%22:%22VISA%22}&vads_action_mode=INTERACTIVE&vads_page_action=REGISTER&vads_card_product_category=CREDIT&vads_card_nature=BUSINESS&vads_archival_reference_id=L156n2114l02&vads_threeds_enrolled=Y&vads_threeds_auth_type=CHALLENGE&vads_threeds_eci=05&vads_threeds_xid=&vads_threeds_cavvAlgorithm=&vads_threeds_status=Y&vads_threeds_sign_valid=&vads_threeds_error_code=&vads_threeds_exit_status=10&vads_threeds_user_interaction=&vads_threeds_cavv=A**************************=&signature=Zo0Zb/htf4Zfp09vwtcQUNPpROtqKPdDnx9%2Bn0Aa8Q0=",
+    "domain": "e-ecf.fr",
+    "simple": "eecf"
+  },
+  {
+    "category": "Outils pro",
+    "label": "JEDECLARE",
+    "url": "https://www.jedeclare.com/auth/realms/jdc-realm/protocol/openid-connect/auth?response_type=code&client_id=jdc-auth-service&redirect_uri=http%3A%2F%2Fwww.jedeclare.com%2Fwebapp%2F&state=88861b47-30e9-443e-8c12-401f77cdae09&login=true&scope=openid",
+    "domain": "jedeclare.com",
+    "simple": "jedeclare"
+  },
+  {
+    "category": "Outils pro",
+    "label": "I-SUITE",
+    "url": "https://isuiteatemi.coaxis.com/",
+    "domain": "isuiteatemi.coaxis.com",
+    "simple": "isuite"
+  },
+  {
+    "category": "Outils pro",
+    "label": "EIC",
+    "url": "https://my.eic.fr/RDWeb/Pages/fr-FR/Default.aspx",
+    "domain": "my.eic.fr",
+    "simple": "eic"
+  },
+  {
+    "category": "Fiscal / Social",
+    "label": "PORTAIL GOUV",
+    "url": "https://portailpro.gouv.fr/",
+    "domain": "portailpro.gouv.fr",
+    "simple": "portailgouv"
+  },
+  {
+    "category": "Fiscal / Social",
+    "label": "IMPOTS.GOUV",
+    "url": "https://cfspro-idp.impots.gouv.fr/oauth2/authorize?response_type=code&redirect_uri=https%3A%2F%2Fcfspro.impots.gouv.fr%2F%3Fopenidconnectcallback%3D1&nonce=1672823292_36663&client_id=id_cfspro_prod&display=&state=1672823292_28831&scope=openid%20profile%20email%20info",
+    "domain": "cfspro-idp.impots.gouv.fr",
+    "simple": "impotsgouv"
+  },
+  {
+    "category": "Fiscal / Social",
+    "label": "URSSAF",
+    "url": "https://www.urssaf.fr/portail/portail/home/connectez-vous.html",
+    "domain": "urssaf.fr",
+    "simple": "urssaf"
+  },
+  {
+    "category": "Fiscal / Social",
+    "label": "ARTISTES-AUTEURS",
+    "url": "https://www.artistes-auteurs.urssaf.fr/aa/tableau-bord/accueil",
+    "domain": "artistes-auteurs.urssaf.fr",
+    "simple": "artistesauteurs"
+  },
+  {
+    "category": "Fiscal / Social",
+    "label": "DRI URSSAF",
+    "url": "https://webti.urssaf.fr/dri",
+    "domain": "webti.urssaf.fr",
+    "simple": "driurssaf"
+  },
+  {
+    "category": "Fiscal / Social",
+    "label": "CONTACT.URSSAF",
+    "url": "https://www.contact.urssaf.fr/mosaic/categorie.do",
+    "domain": "contact.urssaf.fr",
+    "simple": "contacturssaf"
+  },
+  {
+    "category": "Juridique",
+    "label": "IMPALACT",
+    "url": "https://app.impalact.fr/index.php?id=accueil-professionnel&no_cache=1",
+    "domain": "app.impalact.fr",
+    "simple": "impalact"
+  },
+  {
+    "category": "Juridique",
+    "label": "GUICHET UNIQUE",
+    "url": "https://procedures.inpi.fr/?/",
+    "domain": "procedures.inpi.fr",
+    "simple": "guichetunique"
+  },
+  {
+    "category": "Juridique",
+    "label": "INFOGREFFE",
+    "url": "https://www.infogreffe.fr/",
+    "domain": "infogreffe.fr",
+    "simple": "infogreffe"
+  },
+  {
+    "category": "Juridique",
+    "label": "JESIGNEXPERT",
+    "url": "https://extranet.jesignexpert.com/public/logout",
+    "domain": "extranet.jesignexpert.com",
+    "simple": "jesignexpert"
+  },
+  {
+    "category": "Juridique",
+    "label": "LEGAL2DIGITAL",
+    "url": "https://annonces.legal2digital.fr/",
+    "domain": "annonces.legal2digital.fr",
+    "simple": "legal2digital"
+  },
+  {
+    "category": "Juridique",
+    "label": "ANNONCES-LEGALES",
+    "url": "https://pro.annonces-legales.fr/?page=1",
+    "domain": "pro.annonces-legales.fr",
+    "simple": "annonceslegales"
+  },
+  {
+    "category": "Juridique",
+    "label": "ASSITANCE INPI OEC",
+    "url": "https://guichetunique.experts-comptables.org/",
+    "domain": "guichetunique.experts-comptables.org",
+    "simple": "assitanceinpioec"
+  },
+  {
+    "category": "Juridique",
+    "label": "INFOGREFFE",
+    "url": "https://monjuridique.infogreffe.fr/",
+    "domain": "monjuridique.infogreffe.fr",
+    "simple": "infogreffe"
+  },
+  {
+    "category": "Juridique",
+    "label": "PAPPERS",
+    "url": "https://www.pappers.fr/",
+    "domain": "pappers.fr",
+    "simple": "pappers"
+  },
+  {
+    "category": "Paie clients",
+    "label": "SILAE ORH PAIE",
+    "url": "https://orh-paie2022.silae.fr/silae",
+    "domain": "orh-paie2022.silae.fr",
+    "simple": "silaeorhpaie"
+  },
+  {
+    "category": "Paie clients",
+    "label": "SILAE IDEO CONSEIL",
+    "url": "http://social.ideo-conseil.fr/debut.aspx",
+    "domain": "social.ideo-conseil.fr",
+    "simple": "silaeideoconseil"
+  },
+  {
+    "category": "Paie clients",
+    "label": "SILAE ZEN PAIE",
+    "url": "https://www.silaexpert02.fr/silae",
+    "domain": "silaexpert02.fr",
+    "simple": "silaezenpaie"
+  },
+  {
+    "category": "Paie clients",
+    "label": "SILAE EVIDENCE PAIE",
+    "url": "https://evidence.silae.fr/SILAE",
+    "domain": "evidence.silae.fr",
+    "simple": "silaeevidencepaie"
+  },
+  {
+    "category": "Paie clients",
+    "label": "OPENPAYE EVIDENCE PAIE",
+    "url": "https://app.openpaye.co/",
+    "domain": "app.openpaye.co",
+    "simple": "openpayeevidencepaie"
+  },
+  {
+    "category": "Paie clients",
+    "label": "SILAE TEXTEDIPAYE",
+    "url": "https://texteditpaye.silae.fr/silae",
+    "domain": "texteditpaye.silae.fr",
+    "simple": "silaetextedipaye"
+  },
+  {
+    "category": "Paie clients",
+    "label": "SILAE FIDACO",
+    "url": "http://www.silaexpert05.fr/silae",
+    "domain": "silaexpert05.fr",
+    "simple": "silaefidaco"
+  },
+  {
+    "category": "Paie clients",
+    "label": "SILAE AAZ EXPERTS",
+    "url": "https://aazexperts.silae.fr/silae",
+    "domain": "aazexperts.silae.fr",
+    "simple": "silaeaazexperts"
+  },
+  {
+    "category": "Informatique",
+    "label": "CHAT-GPT",
+    "url": "https://chat.openai.com/chat",
+    "domain": "chat.openai.com",
+    "simple": "chatgpt"
+  },
+  {
+    "category": "Informatique",
+    "label": "TRUCDECOMPTABLE",
+    "url": "https://trucdecomptable.fr/index.html",
+    "domain": "trucdecomptable.fr",
+    "simple": "trucdecomptable"
+  },
+  {
+    "category": "Informatique",
+    "label": "ILOVEPDF",
+    "url": "https://www.ilovepdf.com/fr",
+    "domain": "ilovepdf.com",
+    "simple": "ilovepdf"
+  },
+  {
+    "category": "Informatique",
+    "label": "ATEMIEXPERTCOMPTABLE",
+    "url": "https://atemiexpertcomptable.com/wp-admin/",
+    "domain": "atemiexpertcomptable.com",
+    "simple": "atemiexpertcomptable"
+  },
+  {
+    "category": "Informatique",
+    "label": "REMARKABLE",
+    "url": "https://my.remarkable.com/",
+    "domain": "my.remarkable.com",
+    "simple": "remarkable"
+  },
+  {
+    "category": "Informatique",
+    "label": "TRUCS DE COMPTABLE",
+    "url": "https://trucdecomptable.fr/",
+    "domain": "trucdecomptable.fr",
+    "simple": "trucsdecomptable"
+  },
+  {
+    "category": "Informatique",
+    "label": "VISU FEC",
+    "url": "https://visufec.fr/",
+    "domain": "visufec.fr",
+    "simple": "visufec"
+  },
+  {
+    "category": "Informatique",
+    "label": "GitHub",
+    "url": "https://github.com/thomasechappe49",
+    "domain": "github.com",
+    "simple": "github"
+  },
+  {
+    "category": "Reseau",
+    "label": "LNE SLACK",
+    "url": "https://les-nouv-l-expertes.slack.com/",
+    "domain": "les-nouv-l-expertes.slack.com",
+    "simple": "lneslack"
+  },
+  {
+    "category": "Reseau",
+    "label": "LINKEDIN",
+    "url": "https://www.linkedin.com/feed/",
+    "domain": "linkedin.com",
+    "simple": "linkedin"
+  },
+  {
+    "category": "Reseau",
+    "label": "LNE MON ESPACE",
+    "url": "https://les-nouv-l-expertes.org/adherent/mon-espace",
+    "domain": "les-nouv-l-expertes.org",
+    "simple": "lnemonespace"
+  },
+  {
+    "category": "Reseau",
+    "label": "C2A",
+    "url": "https://adherents.c2a49.fr/",
+    "domain": "adherents.c2a49.fr",
+    "simple": "c2a"
+  },
+  {
+    "category": "Reseau",
+    "label": "LNE FORMATIONS",
+    "url": "https://les-nouv-l-expertes.catalogueformpro.com/",
+    "domain": "les-nouv-l-expertes.catalogueformpro.com",
+    "simple": "lneformations"
+  },
+  {
+    "category": "Ordre",
+    "label": "OEC",
+    "url": "https://www.experts-comptables.fr/",
+    "domain": "experts-comptables.fr",
+    "simple": "oec"
+  },
+  {
+    "category": "Ordre",
+    "label": "IMAGE-PME",
+    "url": "https://www.imagepme.fr/fr?check_logged_in=1",
+    "domain": "imagepme.fr",
+    "simple": "imagepme"
+  },
+  {
+    "category": "Gestion",
+    "label": "CREDICYS",
+    "url": "https://www.credicys.fr/",
+    "domain": "credicys.fr",
+    "simple": "credicys"
+  },
+  {
+    "category": "Gestion",
+    "label": "MESIMPAYES",
+    "url": "https://mesimpayes.infogreffe.fr/",
+    "domain": "mesimpayes.infogreffe.fr",
+    "simple": "mesimpayes"
+  },
+  {
+    "category": "Gestion",
+    "label": "PREVISIBILITE",
+    "url": "https://docs.google.com/spreadsheets/d/1xHMiSH7T-BqDYke34b6lmWJjQDjhiqGlSQlTZBeks_4/edit#gid=0",
+    "domain": "docs.google.com",
+    "simple": "previsibilite"
+  },
+  {
+    "category": "Gestion",
+    "label": "WIISMILE",
+    "url": "https://monentreprise.wiismile.fr/beneficiary",
+    "domain": "monentreprise.wiismile.fr",
+    "simple": "wiismile"
+  },
+  {
+    "category": "Salaires",
+    "label": "MY ATLAS",
+    "url": "https://myatlas.opco-atlas.fr/",
+    "domain": "myatlas.opco-atlas.fr",
+    "simple": "myatlas"
+  },
+  {
+    "category": "Salaires",
+    "label": "STAFF N GO",
+    "url": "https://app.staffngo.com/#/home",
+    "domain": "app.staffngo.com",
+    "simple": "staffngo"
+  },
+  {
+    "category": "Salaires",
+    "label": "OPENPAYE",
+    "url": "https://app.openpaye.co/MyApp/28763/Editions",
+    "domain": "app.openpaye.co",
+    "simple": "openpaye"
+  },
+  {
+    "category": "Salaires",
+    "label": "SYLAE",
+    "url": "https://sylae.asp-public.fr/sylae/",
+    "domain": "sylae.asp-public.fr",
+    "simple": "sylae"
+  },
+  {
+    "category": "Salaires",
+    "label": "MYSWISSLIFE",
+    "url": "https://myswisslife.fr/connection/login",
+    "domain": "myswisslife.fr",
+    "simple": "myswisslife"
+  },
+  {
+    "category": "Salaires",
+    "label": "CAVEC",
+    "url": "https://www.cavec.fr/vous-etes-en-debut-dactivite/tout-savoir-sur-la-cavec/votre-compte-en-ligne/",
+    "domain": "cavec.fr",
+    "simple": "cavec"
+  },
+  {
+    "category": "Documentation",
+    "label": "REVUE RF",
+    "url": "http://revuefiduciaire.grouperf.com/",
+    "domain": "revuefiduciaire.grouperf.com",
+    "simple": "revuerf"
+  },
+  {
+    "category": "Documentation",
+    "label": "DROPBOX RF",
+    "url": "https://www.dropbox.com/sh/iuacfwbga8x7om7/AACJCJ8zDZJQatqNBj1flxE5a?dl=0",
+    "domain": "dropbox.com",
+    "simple": "dropboxrf"
+  },
+  {
+    "category": "Personnel",
+    "label": "AMAZON",
+    "url": "https://www.amazon.fr/",
+    "domain": "amazon.fr",
+    "simple": "amazon"
+  },
+  {
+    "category": "Personnel",
+    "label": "PRONOTE",
+    "url": "https://0491966w.index-education.net/pronote/parent.html?identifiant=YnG6Pnn33YUm277q",
+    "domain": "0491966w.index-education.net",
+    "simple": "pronote"
+  },
+  {
+    "category": "Personnel",
+    "label": "E-PRIMO",
+    "url": "https://e-primo.fr/",
+    "domain": "e-primo.fr",
+    "simple": "eprimo"
+  },
+  {
+    "category": "Personnel",
+    "label": "CANTINE CAMILLE",
+    "url": "https://services.ard.fr/fr/espaces-clients/etablissements/angers-bergson/accueil.html?no_cache=1",
+    "domain": "services.ard.fr",
+    "simple": "cantinecamille"
+  },
+  {
+    "category": "Personnel",
+    "label": "YAHOO",
+    "url": "https://mail.yahoo.com/",
+    "domain": "mail.yahoo.com",
+    "simple": "yahoo"
+  },
+  {
+    "category": "Personnel",
+    "label": "LA POSTE",
+    "url": "https://www.laposte.fr/lettre-recommandee-en-ligne",
+    "domain": "laposte.fr",
+    "simple": "laposte"
+  },
+  {
+    "category": "Déplacements",
+    "label": "MAPS",
+    "url": "https://www.google.fr/maps/@47.4726685,-0.5849191,14z?entry=ttu&g_ep=EgoyMDI1MDkxMC4wIKXMDSoASAFQAw%3D%3D",
+    "domain": "google.fr",
+    "simple": "maps"
+  },
+  {
+    "category": "Déplacements",
+    "label": "HOTELS.COM",
+    "url": "https://fr.hotels.com/?locale=fr_FR&pos=HCOM_FR&siteid=300000010",
+    "domain": "fr.hotels.com",
+    "simple": "hotelscom"
+  },
+  {
+    "category": "Déplacements",
+    "label": "BOOKING",
+    "url": "https://www.booking.com/index.fr.html",
+    "domain": "booking.com",
+    "simple": "booking"
+  },
+  {
+    "category": "Déplacements",
+    "label": "SNCF CONNECT",
+    "url": "https://www.sncf-connect.com/",
+    "domain": "sncf-connect.com",
+    "simple": "sncfconnect"
+  }
+];
+
+/* ===== Persistence helpers ===== */
+(function(){
+  var DATA_KEY = "links_data_v1";
+  window.persistLinks = function(){
+    try { localStorage.setItem(DATA_KEY, JSON.stringify(DATA)); }
+    catch(e){ console.error("Persist error:", e); }
+  };
+  window.loadPersistedLinks = function(){
+    try {
+      var raw = localStorage.getItem(DATA_KEY);
+      if (!raw) return;
+      var arr = JSON.parse(raw);
+      if (Array.isArray(arr) && arr.length){ DATA = arr; }
+    } catch(e){ console.warn("Load persisted failed:", e); }
+  };
+})();
+
+/* ===== Helpers ===== */
+function byCat(items){
+  const map = new Map();
+  for (const it of items) {
+    const cat = (it.category||"Autres").toString();
+    if (!map.has(cat)) map.set(cat, []);
+    map.get(cat).push(it);
+  }
+  return map;
+}
+function domainFromUrl(url){ try{ return new URL(url).hostname.replace(/^www\./,''); }catch{ return ""; } }
+function simpleSlug(label){ return (label||"").toLowerCase().replace(/[^a-z0-9]+/g,""); }
+
+/* ===== UI build ===== */
+const dashboard = document.getElementById("dashboard");
+function ddgIcon(domain){ return `https://icons.duckduckgo.com/ip3/${domain}.ico`; }
+function s2Icon(domain){  return `https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(domain)}`; }
+function simpleIcon(slug){ return `https://cdn.simpleicons.org/${encodeURIComponent(slug)}`; }
+
+function build(){
+  dashboard.innerHTML = "";
+  const groups = byCat(DATA);
+  groups.forEach((items, cat) => {
+    const catKey = cat.toLowerCase().replace(/\s+/g,"_");
+    const sec = document.createElement("section");
+    sec.className = "section-card"; sec.dataset.cat = catKey;
+
+    const header = document.createElement("header");
+    header.className = "section-header";
+    const btn = document.createElement("button");
+    btn.className = "toggle"; btn.textContent = cat;
+    const span = document.createElement("span"); span.className = "count";
+    header.append(btn, span);
+
+    const body = document.createElement("div");
+    body.className = "section-body";
+
+    items.forEach(it => {
+      const a = document.createElement("a");
+      a.className = "tile"; a.href = it.url; a.target = "_blank"; a.rel = "noopener";
+      a.dataset.name = (it.label||"").toLowerCase();
+      a.dataset.domain = (it.domain||domainFromUrl(it.url)||"").toLowerCase();
+      a.dataset.url = (it.url||"").toLowerCase();
+
+      const icon = document.createElement("div"); icon.className = "icon";
+      const img = document.createElement("img");
+      const dom = a.dataset.domain; const simple = simpleSlug(it.label||"");
+      img.dataset.domain = dom; img.dataset.simple = simple; img.alt = it.label||dom||it.url;
+      attachFavicon(img);
+      icon.appendChild(img);
+
+      const label = document.createElement("div"); label.className = "label"; label.textContent = it.label || it.domain || it.url;
+      a.append(icon, label);
+      body.appendChild(a);
+    });
+
+    sec.append(header, body);
+    dashboard.appendChild(sec);
+  });
+
+  // init collapse state + events
+  document.querySelectorAll(".section-card").forEach(sec => {
+    const cat = sec.dataset.cat || "";
+    const headerBtn = sec.querySelector(".section-header .toggle");
+    if (isCollapsed(cat)) sec.classList.add("collapsed");
+    headerBtn.addEventListener("click", (e) => {
+      const makeExclusive = e.altKey;
+      const willCollapse = !sec.classList.contains("collapsed");
+      if (makeExclusive) {
+        document.querySelectorAll(".section-card").forEach(other => {
+          if (other !== sec) { other.classList.add("collapsed"); setCollapsed(other.dataset.cat||"", true); }
+        });
+      }
+      sec.classList.toggle("collapsed");
+      setCollapsed(cat, willCollapse);
+    });
+  });
+
+  applyFilter(document.getElementById("localFilter").value);
+}
+
+/* ===== Favicon fallback attach ===== */
+function attachFavicon(img){
+  const domain = img.dataset.domain || "";
+  const simple = img.dataset.simple || "";
+  img.dataset.step = "0";
+  img.src = ddgIcon(domain);
+  img.onerror = function(){ 
+    const step = Number(this.dataset.step||0);
+    if (step===0){ this.dataset.step="1"; this.src = s2Icon(domain); }
+    else if (step===1 && simple){ this.dataset.step="2"; this.src = simpleIcon(simple); }
+    else {
+      const initial = (img.getAttribute("alt")||"?").trim().charAt(0).toUpperCase();
+      const svg = encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'>
+        <rect width='100%' height='100%' rx='8' ry='8' fill='#e5e7eb'/>
+        <text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle'
+          font-family='system-ui,Segoe UI,Roboto,Arial' font-size='24' fill='#111827'>${initial}</text>
+      </svg>`);
+      this.onerror=null;
+      this.src = `data:image/svg+xml,${svg}`;
+    }
+  };
+}
+
+/* ===== Search toolbar ===== */
+const ENGINES = {
+  qwant:      { name: "Qwant",      url: "https://www.qwant.com/?q=" },
+  google:     { name: "Google",     url: "https://www.google.com/search?q=" },
+  duckduckgo: { name: "DuckDuckGo", url: "https://duckduckgo.com/?q=" },
+  brave:      { name: "Brave",      url: "https://search.brave.com/search?q=" },
+  bing:       { name: "Bing",       url: "https://www.bing.com/search?q=" },
+  startpage:  { name: "Startpage",  url: "https://www.startpage.com/do/search?query=" },
+};
+const engineSelect = document.getElementById("engine");
+for (const [k,v] of Object.entries(ENGINES)){ const o=document.createElement("option"); o.value=k;o.textContent=v.name;engineSelect.appendChild(o);}
+engineSelect.value = localStorage.getItem("start_engine") || "qwant";
+engineSelect.addEventListener("change", e => localStorage.setItem("start_engine", e.target.value));
+const webBtn = document.getElementById("webSearch");
+webBtn.addEventListener("click", () => {
+  const q = prompt("Rechercher sur le Web :","");
+  if(!q) return;
+  const eng = ENGINES[engineSelect.value] || ENGINES.qwant;
+  window.open(eng.url + encodeURIComponent(q), "_blank");
+});
+
+/* ===== Filter ===== */
+const filterInput = document.getElementById("localFilter");
+window.addEventListener("keydown", e => { if (e.key === "/" && document.activeElement !== filterInput){ e.preventDefault(); filterInput.focus(); } });
+function applyFilter(q) {
+  const query = (q||"").trim().toLowerCase();
+  const sections = document.querySelectorAll(".section-card");
+  sections.forEach(sec => {
+    const tiles = sec.querySelectorAll(".tile");
+    let visible = 0;
+    tiles.forEach(t => {
+      const hay = (t.dataset.name + " " + t.dataset.domain + " " + t.dataset.url);
+      const show = !query || hay.includes(query);
+      t.style.display = show ? "flex" : "none";
+      if (show) visible++;
+    });
+    const countSpan = sec.querySelector(".count");
+    if (countSpan) countSpan.textContent = visible + " lien" + (visible>1 ? "s" : "");
+    sec.style.display = (visible === 0) ? "none" : "";
+  });
+}
+filterInput.addEventListener("input", e => applyFilter(e.target.value));
+
+/* ===== Collapse persistence ===== */
+const KEY_PREFIX = "zone_collapsed_";
+function isCollapsed(cat){ return localStorage.getItem(KEY_PREFIX + cat) === "1"; }
+function setCollapsed(cat, val){ localStorage.setItem(KEY_PREFIX + cat, val ? "1" : "0"); }
+
+document.getElementById("expandAll").addEventListener("click", () => {
+  document.querySelectorAll(".section-card").forEach(sec => { sec.classList.remove("collapsed"); setCollapsed(sec.dataset.cat||"", false); });
+});
+document.getElementById("collapseAll").addEventListener("click", () => {
+  document.querySelectorAll(".section-card").forEach(sec => { sec.classList.add("collapsed"); setCollapsed(sec.dataset.cat||"", true); });
+});
+
+/* ===== Import / Export ===== */
+const fileInput = document.getElementById("fileInput");
+document.getElementById("importBtn").addEventListener("click", () => fileInput.click());
+document.getElementById("exportBtn").addEventListener("click", () => exportJSON());
+
+fileInput.addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const json = JSON.parse(text);
+    const items = normalizeImported(json);
+    if (!items.length) throw new Error("Aucun lien valide détecté.");
+    const mode = confirm("OK = Remplacer tout • Annuler = Fusionner");
+    if (mode) {
+      DATA = items;
+    } else {
+      // merge by url (avoid duplicates)
+      const known = new Set(DATA.map(x => (x.url||"").toLowerCase()));
+      for (const it of items) {
+        const key = (it.url||"").toLowerCase();
+        if (!known.has(key)) { DATA.push(it); known.add(key); }
+      }
+    }
+    build();
+    alert("Import terminé ✓");
+  } catch(err) {
+    console.error(err);
+    alert("Erreur d'import: " + err.message);
+  } finally {
+    fileInput.value = "";
+  }
+});
+
+function normalizeImported(json){
+  let out = [];
+  if (Array.isArray(json)) {
+    out = json;
+  } else if (json && Array.isArray(json.categories)) {
+    json.categories.forEach(cat => {
+      (cat.links||[]).forEach(link => out.push({
+        category: cat.name || "Autres",
+        label: link.label || link.name || link.title || link.url || "",
+        url: link.url || "",
+      }));
+    });
+  } else if (json && typeof json === 'object') {
+    // object map: { "Catégorie": [{label,url}, ...] }
+    Object.keys(json).forEach(k => {
+      const arr = json[k];
+      if (Array.isArray(arr)) {
+        arr.forEach(link => out.push({
+          category: k,
+          label: link.label || link.name || link.title || link.url || "",
+          url: link.url || ""
+        }));
+      }
+    });
+  }
+  // cleanup + enrich
+  out = out
+    .filter(it => it && it.url)
+    .map(it => ({ 
+      category: it.category || "Autres",
+      label: it.label || it.url,
+      url: it.url.startsWith("http") ? it.url : ("https://" + it.url),
+      domain: domainFromUrl(it.url.startsWith("http") ? it.url : ("https://" + it.url)),
+      simple: simpleSlug(it.label || it.url)
+    }));
+  return out;
+}
+
+function exportJSON(){
+  // Export current DATA as a flat array of {category,label,url}
+  const flat = DATA.map(x => ({ category: x.category||"Autres", label: x.label||"", url: x.url||"" }));
+  const blob = new Blob([JSON.stringify(flat, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  const now = new Date();
+  const ts = now.toISOString().slice(0,10).replace(/-/g,"");
+  a.href = URL.createObjectURL(blob);
+  a.download = `links_backup_${ts}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+/* ===== Init ===== */
+loadPersistedLinks && loadPersistedLinks();
+build();
+</script>
+
+
+
+<script>
+/* === Override: Import / Export now uses CSV (category;label;url) === */
+(function(){
+  const fileInput = document.getElementById("fileInput");
+  const importBtn = document.getElementById("importBtn");
+  const exportBtn = document.getElementById("exportBtn");
+
+  if (!fileInput || !importBtn || !exportBtn) return;
+
+  // Detach any previous listeners by cloning nodes
+  const impClone = importBtn.cloneNode(true); importBtn.parentNode.replaceChild(impClone, importBtn);
+  const expClone = exportBtn.cloneNode(true); exportBtn.parentNode.replaceChild(expClone, exportBtn);
+  const fileClone = fileInput.cloneNode(true); fileInput.parentNode.replaceChild(fileClone, fileInput);
+
+  const importButton = document.getElementById("importBtn");
+  const exportButton = document.getElementById("exportBtn");
+  const fileEl = document.getElementById("fileInput");
+
+  importButton.addEventListener("click", () => fileEl.click());
+  exportButton.addEventListener("click", () => exportCSV());
+
+  fileEl.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const rows = parseCSV(text);
+      const items = rowsToItems(rows);
+      if (!items.length) throw new Error("Aucun lien valide détecté.");
+      const mode = confirm("OK = Remplacer tout • Annuler = Fusionner");
+      if (mode) {
+        DATA = items;
+      } else {
+        const known = new Set(DATA.map(x => (x.url||"").toLowerCase()));
+        for (const it of items){
+          const key = (it.url||"").toLowerCase();
+          if (!known.has(key)){ DATA.push(it); known.add(key); }
+        }
+      }
+      persistLinks && persistLinks();
+      if (typeof build === "function") build();
+      alert("Import CSV terminé ✓");
+    } catch(err) {
+      alert("Erreur d'import CSV: " + err.message);
+    } finally {
+      e.target.value = "";
+    }
+  });
+
+  function exportCSV(){
+    const header = "category;label;url\n";
+    const lines = (Array.isArray(DATA) ? DATA : []).map(x => [
+      (x.category||"Autres"), (x.label||""), (x.url||"")
+    ].map(csvEscape).join(";")).join("\n");
+    const csv = "\ufeff" + header + lines;
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+    const a = document.createElement("a");
+    const ts = new Date().toISOString().slice(0,10).replace(/-/g,"");
+    a.href = URL.createObjectURL(blob);
+    a.download = `links_backup_${ts}.csv`;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+  }
+
+  function csvEscape(v){
+    const s = (v||"").toString();
+    return /[;"\n\r]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  }
+  function detectDelim(first){
+    if (first.includes(";")) return ";";
+    if (first.includes(",")) return ",";
+    if (first.includes("\t")) return "\t";
+    return ";";
+  }
+  function parseCSV(text){
+    const lines = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n").filter(l=>l.trim().length>0);
+    if (!lines.length) return [];
+    const d = detectDelim(lines[0]);
+    const rows = [];
+    for (const line of lines){
+      const row = []; let cur = ""; let i = 0; let inQ = false;
+      while (i < line.length){
+        const ch = line[i];
+        if (inQ){
+          if (ch === '"'){
+            if (i+1 < line.length && line[i+1] === '"'){ cur += '"'; i += 2; continue; }
+            inQ = false; i++; continue;
+          } else { cur += ch; i++; continue; }
+        } else {
+          if (ch === '"'){ inQ = true; i++; continue; }
+          if ((d === "\t" && ch === "\t") || (d !== "\t" && ch === d)){ row.push(cur); cur = ""; i++; continue; }
+          cur += ch; i++; continue;
+        }
+      }
+      row.push(cur);
+      rows.push(row);
+    }
+    return rows;
+  }
+  function rowsToItems(rows){
+    if (!rows.length) return [];
+    let start = 0;
+    const first = rows[0].map(s => (s||"").trim().toLowerCase());
+    if (first.length >= 3 && first[0] === "category" && first[1] === "label" && first[2] === "url") start = 1;
+    const items = [];
+    for (let i=start;i<rows.length;i++){
+      const r = rows[i];
+      if (!r || r.length < 3) continue;
+      const category = (r[0]||"Autres").trim();
+      const label = (r[1]||"").trim();
+      let url = (r[2]||"").trim();
+      if (!url) continue;
+      if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+      items.push({
+        category, label: label || url, url,
+        domain: (function(u){ try{ return new URL(u).hostname.replace(/^www\./,''); }catch{return ""} })(url),
+        simple: (label||url).toLowerCase().replace(/[^a-z0-9]+/g,"")
+      });
+    }
+    return items;
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var btn = document.getElementById("exportHtmlBtn");
+  if (!btn) return;
+  if (btn._bound) return; btn._bound = true;
+  btn.addEventListener("click", function(){
+    try{
+      var pretty = JSON.stringify(DATA, null, 2);
+      var html = document.documentElement.outerHTML;
+      var re = /(let|var|const)\s+DATA\s*=\s*\[[\s\S]*?\];/;
+      if (re.test(html)){
+        html = html.replace(re, function(_,kw){ return kw + " DATA = " + pretty + ";"; });
+      } else {
+        // Fallback: inject a runtime assignment
+        html = html.replace("</body>", "<script>(function(){try{ if (Array.isArray(window.__DATA__)) DATA = window.__DATA__; }catch(e){} })()<\/script></body>");
+        html = html.replace("</body>", "<script>window.__DATA__="+pretty+";<\/script></body>");
+      }
+      var blob = new Blob([html], {type:"text/html;charset=utf-8"});
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "liens_personnalises.html";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1200);
+    }catch(e){
+      alert("Export HTML échoué : " + (e && e.message ? e.message : e));
+      console.error(e);
+    }
+  });
+})();
+</script>
+</body></html>
